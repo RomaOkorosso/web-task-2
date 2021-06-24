@@ -26,18 +26,18 @@ var current_score = 0;
 var best_score = 0;
 var enemies = [];
 var ecount = 0, ekills = 0, boss_hp = -1;
-
+var buttonX = [250, 250, 250];
+var buttonY = [200, 320, 390];
+var buttonW = [549, 577, 403];
+var buttonH = [90, 63, 63];
 var bullets = [];
 var obstacles = [];
 var boss;
 
 var gameOver = new Image();
-gameOver.src = "img/gameover.png";
-
-for (var enemy = 0; enemy < 1; enemy++) {
-    Img[enemy] = new Image();
-    Img[enemy].src = "pimg/" + enemy + ".gif";
-}
+gameOver.src = "imgs/gameover.png";
+var start = new Image();
+start.src = "imgs/start.png";
 
 function makeEnemy() {
     let ex = 900;
@@ -78,12 +78,6 @@ var godtimer = 0;
 
 var enemy_img = new Image();
 enemy_img.src = 'imgs/enemy.png';
-
-var buttonX = [250, 250, 250];
-var buttonY = [200, 320, 390];
-var buttonW = [549, 577, 403];
-var buttonH = [90, 63, 63];
-
 
 var leftKeyPressed = false;
 var rightKeyPressed = false;
@@ -180,19 +174,19 @@ function moveEnemy() {
     }
 
 
-    for (enemy in enemies) {
+    for (i in enemies) {
         if (timer % 30 == 0) {
-            makeObst(enemies[enemy].x, enemies[enemy].y);
+            makeObst(enemies[i].x, enemies[i].y);
         }
-        enemies[enemy].move();
+        enemies[i].move();
         //border
-        if (enemies[enemy].x <= 0) {
-            enemies[enemy].x = 900;
-            enemies[enemy].y = Math.random() * 525;
+        if (enemies[i].x <= 0) {
+            enemies[i].x = 900;
+            enemies[i].y = Math.random() * 525;
         }
-        if (enemies[enemy].y >= 525 || enemies[enemy].y < 0) enemies[enemy].dy = -enemies[enemy].dy;
+        if (enemies[i].y >= 525 || enemies[i].y < 0) enemies[i].dy = -enemies[i].dy;
         //collusion
-        if (enemies[enemy].y + 75 > player.y + 75 / 2 && enemies[enemy].y < player.y + 75 - 75 / 2 && enemies[enemy].x + 75 > player.x + 75 / 2 + 3 && enemies[enemy].x < player.x + 75 - (75 / 2 + 3)) {
+        if (enemies[i].y + 75 > player.y + 75 / 2 && enemies[i].y < player.y + 75 - 75 / 2 && enemies[i].x + 75 > player.x + 75 / 2 + 3 && enemies[i].x < player.x + 75 - (75 / 2 + 3)) {
             godtimer = 180;
             player_hp--;
             current_score -= 50;
@@ -244,12 +238,12 @@ function moveBoss() {
 }
 
 function moveObstacles() {
-    for (item in obstacles) {
-        obstacles[item].move();
-        if (obstacles[item].outOfRange()) {
-            delete obstacles[item]
-            curscore++;
-        } else if (obstacles[item].y + 13 > player.y + 75 / 2 && obstacles[item].y < player.y + 75 - 75 / 2 && obstacles[item].x + 20 > player.x + 75 / 2 + 3 && obstacles[item].x < player.x + 75 - (75 / 2 + 3)) {
+    for (i in obstacles) {
+        obstacles[i].move();
+        if (obstacles[i].outOfRange()) {
+            delete obstacles[i]
+            current_score++;
+        } else if (obstacles[i].y + 13 > player.y + 75 / 2 && obstacles[i].y < player.y + 75 - 75 / 2 && obstacles[i].x + 20 > player.x + 75 / 2 + 3 && obstacles[i].x < player.x + 75 - (75 / 2 + 3)) {
             godtimer = 180;
             player_hp--;
             current_score -= 50;
@@ -274,9 +268,9 @@ function moveBullet() {
         bullets[bullet].move();
         if (bullets[bullet].outOfRange()) {
             delete bullets[bullet];
-        } else if (bullets[bullet].hasCollided()) {
+        } else if (bullets[bullet].wasCollided()) {
             delete bullets[bullet];
-        } else if (bosshp > -1 && bullets[bullet].x + 13 >= boss.x && bullets[bullet].x <= boss.x + 200 && bullets[bullet].y + 13 >= boss.y && bullets[bullet].y <= boss.y + 75) {
+        } else if (boss_hp > -1 && bullets[bullet].x + 13 >= boss.x && bullets[bullet].x <= boss.x + 200 && bullets[bullet].y + 13 >= boss.y && bullets[bullet].y <= boss.y + 75) {
             delete bullets[bullet];
             current_score += 10;
             boss_hp--;
@@ -291,14 +285,34 @@ function game() {
     requestAnimFrame(game);
 }
 
+function checkPos(mouseEvent) {
+    mouseX = mouseEvent.pageX - this.offsetLeft;
+    mouseY = mouseEvent.pageY - this.offsetTop;
+}
+
+canvas.addEventListener('click', function (event) {
+    if (mouseX > buttonX[1] && mouseX < buttonX[1] + buttonW[1] && mouseY > buttonY[1] && mouseY < buttonY[1] + buttonH[1] && state == 0) {
+        state = 1;
+    } else if (mouseX > buttonX[2] && mouseX < buttonX[2] + buttonW[2] && mouseY > buttonY[2] && mouseY < buttonY[2] + buttonH[2] && state == 0) {
+        state = 1;
+        document.getElementById('game').style.cursor = "none";
+    } else if (mouseX > 300 && mouseX < 300 + 373 && mouseY > 420 && mouseY < 420 + 63 && state == 2) {
+        state = 0;
+    }
+});
+
+enemy_img.onload = function () {
+    game();
+}
+
 function update() {
 
     if (state == 0) {
         current_score = 0;
     }
     if (state == 1) {
-
-        if (ekills > 60 && bosshp == -1) {
+        shoot();
+        if (ekills > 60 && boss_hp == -1) {
             makeBoss();
             enemies.forEach(function (enemy, i) {
                 delete enemies[i];
@@ -332,6 +346,7 @@ function render() {
 
     if (state == 0) {
         context.fillText("Best score :" + best_score, 50, 50);
+        context.drawImage(start, buttonX[2], buttonY[2]);
     }
     if (state == 1) {
         for (i in enemies) enemies[i].draw();
@@ -352,7 +367,6 @@ function render() {
         context.drawImage(gameOver, 300, 200);
         context.fillText("Your score :" + current_score, 300, 350);
         context.fillText("Best score :" + best_score, 300, 400);
-        context.drawImage(menu, 300, 420);
     }
 
 }
