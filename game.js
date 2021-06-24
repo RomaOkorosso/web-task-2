@@ -15,21 +15,18 @@ var context = canvas.getContext('2d');
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyUnpressed);
 canvas.addEventListener("mousemove", checkPos);
-var fadeId = 0;
 
 context.font = "30px Arial";
 
-var state = 0; //0-main menu 1-game 2-death-screen
-var Img = [];
-var z = 0;
+var state = 0; //0 - main menu, 1 - game, 2 - death screen
 var current_score = 0;
 var best_score = 0;
 var enemies = [];
 var ecount = 0, ekills = 0, boss_hp = -1;
-var buttonX = [250, 250, 250];
-var buttonY = [200, 320, 390];
-var buttonW = [549, 577, 403];
-var buttonH = [90, 63, 63];
+var buttonX = [280];
+var buttonY = [250];
+var buttonW = [300];
+var buttonH = [300];
 var bullets = [];
 var obstacles = [];
 var boss;
@@ -78,6 +75,8 @@ var godtimer = 0;
 
 var enemy_img = new Image();
 enemy_img.src = 'imgs/enemy.png';
+var background = new Image();
+background.src = 'imgs/space.jpg';
 
 var leftKeyPressed = false;
 var rightKeyPressed = false;
@@ -105,9 +104,9 @@ function keyPressed(event) {
         downKeyPressed = true;
     }
     if (event.keyCode == SPACE_KEY) {
-        if (kd <= 0) {
-            makeBullet();
-            kd = 20;
+        if (state == 2){
+            state = 0;
+            spaceKeyPressed = true;
         }
     }
 
@@ -291,17 +290,13 @@ function checkPos(mouseEvent) {
 }
 
 canvas.addEventListener('click', function (event) {
-    if (mouseX > buttonX[1] && mouseX < buttonX[1] + buttonW[1] && mouseY > buttonY[1] && mouseY < buttonY[1] + buttonH[1] && state == 0) {
-        state = 1;
-    } else if (mouseX > buttonX[2] && mouseX < buttonX[2] + buttonW[2] && mouseY > buttonY[2] && mouseY < buttonY[2] + buttonH[2] && state == 0) {
+    if (mouseX > buttonX[0] && mouseX < buttonX[0] + buttonW[0] && mouseY > buttonY[0] && mouseY < buttonY[0] + buttonH[0] && state == 0) {
         state = 1;
         document.getElementById('game').style.cursor = "none";
-    } else if (mouseX > 300 && mouseX < 300 + 373 && mouseY > 420 && mouseY < 420 + 63 && state == 2) {
-        state = 0;
     }
 });
 
-enemy_img.onload = function () {
+background.onload = function () {
     game();
 }
 
@@ -344,29 +339,28 @@ function update() {
 
 function render() {
 
+    context.drawImage(background, 0, 0, 900, 600);
     if (state == 0) {
-        context.fillText("Best score :" + best_score, 50, 50);
-        context.drawImage(start, buttonX[2], buttonY[2]);
+        context.fillText("Best score: " + best_score, 50, 50);
+        context.drawImage(start, buttonX[0], buttonY[0]);
     }
     if (state == 1) {
         for (i in enemies) enemies[i].draw();
         for (i in bullets) bullets[i].draw();
         for (i in obstacles) obstacles[i].draw();
-
-        z++
-        if (z >= 75) {
-            z = 0;
-        }
-        player.draw(Math.floor(z / 5));
-        context.fillText("score :" + current_score, 50, 50);
+        player.draw();
+        var color = "#acacac";
+        context.fillStyle = color;
+        context.fillText("score: " +
+            "" + current_score, 50, 50);
         if (boss_hp > -1) {
             boss.draw();
         }
     }
     if (state == 2) {
-        context.drawImage(gameOver, 300, 200);
-        context.fillText("Your score :" + current_score, 300, 350);
-        context.fillText("Best score :" + best_score, 300, 400);
+        context.drawImage(gameOver, 200, 50);
+        context.fillText("Your score: " + current_score, 300, 400);
+        context.fillText("Best score: " + best_score, 300, 450);
     }
 
 }

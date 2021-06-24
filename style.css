@@ -1,8 +1,9 @@
-body{
+body {
     background-image: url(imgs/space.jpg);
     background-size: cover;
 }
-#wrapper{
+
+#wrapper {
     width: 900px;
     margin: 0 auto;
 }
